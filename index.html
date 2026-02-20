@@ -146,16 +146,57 @@ function switchTab(e, tab){
 
 // WORD → SIGN VIDEO MAP
 const signVideos = {
+  // greetings
   hello: "https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif",
+  hi: "https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif",
+  good: "https://media.giphy.com/media/3o7TKtnuHOHHUjR38Y/giphy.gif",
+  morning: "https://media.giphy.com/media/3o7TKtnuHOHHUjR38Y/giphy.gif",
+  night: "https://media.giphy.com/media/3o7btPCcdNniyf0ArS/giphy.gif",
+
+  // polite words
   thanks: "https://media.giphy.com/media/3o6Zt481isNVuQI1l6/giphy.gif",
+  please: "https://media.giphy.com/media/l3vR85PnGsBwu1PFK/giphy.gif",
+  sorry: "https://media.giphy.com/media/3o7aCTfyhYawdOXcFW/giphy.gif",
+  welcome: "https://media.giphy.com/media/l0MYGb7k2kV2hG7YI/giphy.gif",
+
+  // emotions
   love: "https://media.giphy.com/media/26BRv0ThflsHCqDrG/giphy.gif",
+  happy: "https://media.giphy.com/media/111ebonMs90YLu/giphy.gif",
+  sad: "https://media.giphy.com/media/ROF8OQvDmxytW/giphy.gif",
+  angry: "https://media.giphy.com/media/l0HUpt2s9Pclgt9Vm/giphy.gif",
+
+  // responses
   yes: "https://media.giphy.com/media/xT9IgG50Fb7Mi0prBC/giphy.gif",
   no: "https://media.giphy.com/media/3o7btPCcdNniyf0ArS/giphy.gif",
-  sorry: "https://media.giphy.com/media/3o7aCTfyhYawdOXcFW/giphy.gif",
-  food: "https://media.giphy.com/media/3o6ZsZwgkWKohM8kp2/giphy.gif",
-  help: "https://media.giphy.com/media/l4FGuhL4U2WyjdkaY/giphy.gif"
-};
+  okay: "https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif",
 
+  // daily needs
+  food: "https://media.giphy.com/media/3o6ZsZwgkWKohM8kp2/giphy.gif",
+  water: "https://media.giphy.com/media/26BRuo6sLetdllPAQ/giphy.gif",
+  drink: "https://media.giphy.com/media/26BRuo6sLetdllPAQ/giphy.gif",
+  eat: "https://media.giphy.com/media/3o6ZsZwgkWKohM8kp2/giphy.gif",
+  sleep: "https://media.giphy.com/media/l0MYGb7k2kV2hG7YI/giphy.gif",
+
+  // actions
+  help: "https://media.giphy.com/media/l4FGuhL4U2WyjdkaY/giphy.gif",
+  stop: "https://media.giphy.com/media/3o7TKtnuHOHHUjR38Y/giphy.gif",
+  go: "https://media.giphy.com/media/l0HU7JI8yM7rW3ZVm/giphy.gif",
+  come: "https://media.giphy.com/media/l0HU7JI8yM7rW3ZVm/giphy.gif",
+
+  // people
+  you: "https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif",
+  me: "https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif",
+  friend: "https://media.giphy.com/media/l0MYGb7k2kV2hG7YI/giphy.gif",
+  family: "https://media.giphy.com/media/l0MYGb7k2kV2hG7YI/giphy.gif",
+
+  // places
+  home: "https://media.giphy.com/media/l0MYGb7k2kV2hG7YI/giphy.gif",
+  school: "https://media.giphy.com/media/3o7TKtnuHOHHUjR38Y/giphy.gif",
+  office: "https://media.giphy.com/media/3o7TKtnuHOHHUjR38Y/giphy.gif",
+
+  // fallback
+  unknown: "https://media.giphy.com/media/14uQ3cOFteDaU/giphy.gif"
+};
 // TEXT → SIGN (INSTANT)
 function generateSign(){
   const text = document.getElementById("inputText").value.toLowerCase();
