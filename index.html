@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI Sign Language Translator</title>
 
+<!-- MediaPipe -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+
 <style>
 :root {
   --bg1:#0f2027;
@@ -29,7 +33,6 @@ body {
   background:rgba(255,255,255,0.08);
   padding:20px;
   border-radius:20px;
-  backdrop-filter:blur(10px);
 }
 
 h1 { text-align:center; }
@@ -78,17 +81,12 @@ button {
   text-align:center;
 }
 
-/* grid for instant signs */
 .sign-grid {
   display:flex;
   flex-wrap:wrap;
   justify-content:center;
   gap:10px;
-}
-
-.sign-grid img {
-  width:120px;
-  border-radius:10px;
+  font-size:40px;
 }
 
 video {
@@ -105,14 +103,14 @@ video {
   <h1>🤟 AI Sign Language Translator</h1>
 
   <div class="tabs">
-    <div class="tab active" onclick="switchTab(event,'text')">Text → Sign</div>
+    <div class="tab active" onclick="switchTab(event,'text')">Text → Emoji Sign</div>
     <div class="tab" onclick="switchTab(event,'video')">Video → Text</div>
   </div>
 
-  <!-- TEXT TO SIGN -->
+  <!-- TEXT MODE -->
   <div id="textMode">
-    <textarea id="inputText" placeholder="Enter text..."></textarea>
-    <button onclick="generateSign()">Generate Sign</button>
+    <textarea id="inputText" placeholder="Type anything..."></textarea>
+    <button onclick="generateSign()">Generate Signs</button>
 
     <div class="output">
       <div id="signContainer" class="sign-grid"></div>
@@ -120,10 +118,9 @@ video {
     </div>
   </div>
 
-  <!-- VIDEO TO TEXT -->
+  <!-- VIDEO MODE -->
   <div id="videoMode" style="display:none;">
     <button onclick="startCamera()">Start Camera</button>
-    <button onclick="startSpeech()">🎙️ Start Speech Recognition</button>
     <video id="camera" autoplay muted></video>
 
     <div class="output">
@@ -144,103 +141,103 @@ function switchTab(e, tab){
   e.target.classList.add("active");
 }
 
-// WORD → SIGN VIDEO MAP
-const signVideos = {
-  // greetings
-  hello: "https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif",
-  hi: "https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif",
-  good: "https://media.giphy.com/media/3o7TKtnuHOHHUjR38Y/giphy.gif",
-  morning: "https://media.giphy.com/media/3o7TKtnuHOHHUjR38Y/giphy.gif",
-  night: "https://media.giphy.com/media/3o7btPCcdNniyf0ArS/giphy.gif",
+// 🔥 SMART EMOJI MAP (multiple words)
+const emojiMap = [
+  { words:["hello","hi","hey"], emoji:"👋" },
+  { words:["thanks","thankyou"], emoji:"🙏" },
+  { words:["love","like"], emoji:"❤️" },
+  { words:["happy","joy"], emoji:"😊" },
+  { words:["sad","cry"], emoji:"😢" },
+  { words:["angry","mad"], emoji:"😡" },
+  { words:["yes","yeah"], emoji:"👍" },
+  { words:["no","not"], emoji:"👎" },
+  { words:["food","eat","hungry"], emoji:"🍕" },
+  { words:["drink","water"], emoji:"🥤" },
+  { words:["sleep","tired"], emoji:"😴" },
+  { words:["money","cash"], emoji:"💰" },
+  { words:["home","house"], emoji:"🏠" },
+  { words:["car","vehicle"], emoji:"🚗" },
+  { words:["study","learn"], emoji:"📚" },
+  { words:["phone","mobile"], emoji:"📱" },
+  { words:["music","song"], emoji:"🎵" },
+  { words:["game","play"], emoji:"🎮" },
+  { words:["help","assist"], emoji:"🆘" }
+];
 
-  // polite words
-  thanks: "https://media.giphy.com/media/3o6Zt481isNVuQI1l6/giphy.gif",
-  please: "https://media.giphy.com/media/l3vR85PnGsBwu1PFK/giphy.gif",
-  sorry: "https://media.giphy.com/media/3o7aCTfyhYawdOXcFW/giphy.gif",
-  welcome: "https://media.giphy.com/media/l0MYGb7k2kV2hG7YI/giphy.gif",
+// FIND EMOJI
+function getEmoji(word){
+  for(let item of emojiMap){
+    if(item.words.includes(word)){
+      return item.emoji;
+    }
+  }
+  return "❓";
+}
 
-  // emotions
-  love: "https://media.giphy.com/media/26BRv0ThflsHCqDrG/giphy.gif",
-  happy: "https://media.giphy.com/media/111ebonMs90YLu/giphy.gif",
-  sad: "https://media.giphy.com/media/ROF8OQvDmxytW/giphy.gif",
-  angry: "https://media.giphy.com/media/l0HUpt2s9Pclgt9Vm/giphy.gif",
-
-  // responses
-  yes: "https://media.giphy.com/media/xT9IgG50Fb7Mi0prBC/giphy.gif",
-  no: "https://media.giphy.com/media/3o7btPCcdNniyf0ArS/giphy.gif",
-  okay: "https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif",
-
-  // daily needs
-  food: "https://media.giphy.com/media/3o6ZsZwgkWKohM8kp2/giphy.gif",
-  water: "https://media.giphy.com/media/26BRuo6sLetdllPAQ/giphy.gif",
-  drink: "https://media.giphy.com/media/26BRuo6sLetdllPAQ/giphy.gif",
-  eat: "https://media.giphy.com/media/3o6ZsZwgkWKohM8kp2/giphy.gif",
-  sleep: "https://media.giphy.com/media/l0MYGb7k2kV2hG7YI/giphy.gif",
-
-  // actions
-  help: "https://media.giphy.com/media/l4FGuhL4U2WyjdkaY/giphy.gif",
-  stop: "https://media.giphy.com/media/3o7TKtnuHOHHUjR38Y/giphy.gif",
-  go: "https://media.giphy.com/media/l0HU7JI8yM7rW3ZVm/giphy.gif",
-  come: "https://media.giphy.com/media/l0HU7JI8yM7rW3ZVm/giphy.gif",
-
-  // people
-  you: "https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif",
-  me: "https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif",
-  friend: "https://media.giphy.com/media/l0MYGb7k2kV2hG7YI/giphy.gif",
-  family: "https://media.giphy.com/media/l0MYGb7k2kV2hG7YI/giphy.gif",
-
-  // places
-  home: "https://media.giphy.com/media/l0MYGb7k2kV2hG7YI/giphy.gif",
-  school: "https://media.giphy.com/media/3o7TKtnuHOHHUjR38Y/giphy.gif",
-  office: "https://media.giphy.com/media/3o7TKtnuHOHHUjR38Y/giphy.gif",
-
-  // fallback
-  unknown: "https://media.giphy.com/media/14uQ3cOFteDaU/giphy.gif"
-};
-// TEXT → SIGN (INSTANT)
+// TEXT → EMOJI SIGN
 function generateSign(){
   const text = document.getElementById("inputText").value.toLowerCase();
   const container = document.getElementById("signContainer");
-  const caption = document.getElementById("caption");
 
-  if(!text) return;
+  container.innerHTML = "";
 
-  const words = text.split(" ");
-  container.innerHTML = ""; // clear
+  const words = text.split(" ").map(w => w.replace(/[^a-z]/g,""));
 
-  words.forEach(word => {
-    const img = document.createElement("img");
-    img.src = signVideos[word] || 
-      "https://media.giphy.com/media/14uQ3cOFteDaU/giphy.gif";
-    container.appendChild(img);
+  words.forEach(word=>{
+    const span = document.createElement("span");
+    span.innerText = getEmoji(word);
+    container.appendChild(span);
   });
 
-  caption.innerText = "Signs generated instantly 🚀";
+  document.getElementById("caption").innerText = "Smart emoji signs generated 🚀";
 }
 
-// CAMERA
+// 🚀 REAL AI CAMERA
 async function startCamera(){
   const video = document.getElementById("camera");
+
   const stream = await navigator.mediaDevices.getUserMedia({video:true});
   video.srcObject = stream;
+
+  const hands = new Hands({
+    locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+  });
+
+  hands.setOptions({
+    maxNumHands: 1,
+    minDetectionConfidence: 0.7,
+    minTrackingConfidence: 0.7
+  });
+
+  hands.onResults(onResults);
+
+  const camera = new Camera(video, {
+    onFrame: async () => {
+      await hands.send({image: video});
+    },
+    width: 640,
+    height: 480
+  });
+
+  camera.start();
 }
 
-// SPEECH → TEXT
-function startSpeech(){
-  if(!('webkitSpeechRecognition' in window)){
-    alert("Speech recognition not supported");
-    return;
-  }
+// 🧠 GESTURE DETECTION
+function onResults(results){
+  if(results.multiHandLandmarks && results.multiHandLandmarks.length > 0){
 
-  const recognition = new webkitSpeechRecognition();
-  recognition.lang = "en-US";
-  recognition.start();
+    const landmarks = results.multiHandLandmarks[0];
+    const indexTip = landmarks[8];
 
-  recognition.onresult = function(event){
-    const text = event.results[0][0].transcript;
+    let gesture = "UNKNOWN 🤔";
+
+    if(indexTip.y < landmarks[6].y){
+      gesture = "HELLO 👋";
+    }
+
     document.getElementById("translatedText").innerText =
-      "Recognized: " + text;
-  };
+      "Detected Gesture: " + gesture;
+  }
 }
 
 </script>
