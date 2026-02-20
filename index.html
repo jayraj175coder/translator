@@ -25,7 +25,7 @@ body {
 
 .app {
   width:95%;
-  max-width:800px;
+  max-width:900px;
   background:rgba(255,255,255,0.08);
   padding:20px;
   border-radius:20px;
@@ -78,7 +78,20 @@ button {
   text-align:center;
 }
 
-video, img {
+/* grid for instant signs */
+.sign-grid {
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:10px;
+}
+
+.sign-grid img {
+  width:120px;
+  border-radius:10px;
+}
+
+video {
   width:100%;
   border-radius:10px;
   margin-top:10px;
@@ -99,10 +112,10 @@ video, img {
   <!-- TEXT TO SIGN -->
   <div id="textMode">
     <textarea id="inputText" placeholder="Enter text..."></textarea>
-    <button onclick="generateSign()">Generate Sign Video</button>
+    <button onclick="generateSign()">Generate Sign</button>
 
     <div class="output">
-      <img id="signVideo" src="">
+      <div id="signContainer" class="sign-grid"></div>
       <p id="caption"></p>
     </div>
   </div>
@@ -110,17 +123,19 @@ video, img {
   <!-- VIDEO TO TEXT -->
   <div id="videoMode" style="display:none;">
     <button onclick="startCamera()">Start Camera</button>
-    <video id="video" autoplay></video>
+    <button onclick="startSpeech()">🎙️ Start Speech Recognition</button>
+    <video id="camera" autoplay muted></video>
 
     <div class="output">
       <p id="translatedText">Detected text will appear here...</p>
     </div>
   </div>
+
 </div>
 
 <script>
 
-// 🔥 TAB SWITCH FIX
+// TAB SWITCH
 function switchTab(e, tab){
   document.getElementById("textMode").style.display = tab==="text"?"block":"none";
   document.getElementById("videoMode").style.display = tab==="video"?"block":"none";
@@ -129,66 +144,62 @@ function switchTab(e, tab){
   e.target.classList.add("active");
 }
 
-// 🔥 WORD → SIGN VIDEO MAP
+// WORD → SIGN VIDEO MAP
 const signVideos = {
   hello: "https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif",
   thanks: "https://media.giphy.com/media/3o6Zt481isNVuQI1l6/giphy.gif",
   love: "https://media.giphy.com/media/26BRv0ThflsHCqDrG/giphy.gif",
   yes: "https://media.giphy.com/media/xT9IgG50Fb7Mi0prBC/giphy.gif",
   no: "https://media.giphy.com/media/3o7btPCcdNniyf0ArS/giphy.gif",
-  food: "https://media.giphy.com/media/3o6ZtaO9BZHcOjmErm/giphy.gif"
+  sorry: "https://media.giphy.com/media/3o7aCTfyhYawdOXcFW/giphy.gif",
+  food: "https://media.giphy.com/media/3o6ZsZwgkWKohM8kp2/giphy.gif",
+  help: "https://media.giphy.com/media/l4FGuhL4U2WyjdkaY/giphy.gif"
 };
 
-let interval;
-
-// ✅ TEXT → SIGN VIDEO (SEQUENTIAL)
+// TEXT → SIGN (INSTANT)
 function generateSign(){
   const text = document.getElementById("inputText").value.toLowerCase();
-  const img = document.getElementById("signVideo");
+  const container = document.getElementById("signContainer");
   const caption = document.getElementById("caption");
 
   if(!text) return;
 
   const words = text.split(" ");
-  let i = 0;
+  container.innerHTML = ""; // clear
 
-  clearInterval(interval);
+  words.forEach(word => {
+    const img = document.createElement("img");
+    img.src = signVideos[word] || 
+      "https://media.giphy.com/media/14uQ3cOFteDaU/giphy.gif";
+    container.appendChild(img);
+  });
 
-  interval = setInterval(()=>{
-    if(i >= words.length){
-      clearInterval(interval);
-      return;
-    }
-
-    const word = words[i];
-
-    img.src = signVideos[word] || "https://media.giphy.com/media/14uQ3cOFteDaU/giphy.gif";
-    caption.innerText = "Showing sign for: " + word;
-
-    i++;
-  }, 1500);
+  caption.innerText = "Signs generated instantly 🚀";
 }
 
-// ✅ VIDEO → TEXT (CAMERA + SIMULATION)
+// CAMERA
 async function startCamera(){
-  const video = document.getElementById("video");
+  const video = document.getElementById("camera");
+  const stream = await navigator.mediaDevices.getUserMedia({video:true});
+  video.srcObject = stream;
+}
 
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({video:true});
-    video.srcObject = stream;
-
-    // Simulated AI detection
-    setInterval(()=>{
-      const sample = ["HELLO", "THANK YOU", "YES", "NO"];
-      const random = sample[Math.floor(Math.random()*sample.length)];
-
-      document.getElementById("translatedText").innerText =
-        "Detected Gesture: " + random + " (AI simulated)";
-    },2000);
-
-  } catch (err) {
-    alert("Camera access denied!");
+// SPEECH → TEXT
+function startSpeech(){
+  if(!('webkitSpeechRecognition' in window)){
+    alert("Speech recognition not supported");
+    return;
   }
+
+  const recognition = new webkitSpeechRecognition();
+  recognition.lang = "en-US";
+  recognition.start();
+
+  recognition.onresult = function(event){
+    const text = event.results[0][0].transcript;
+    document.getElementById("translatedText").innerText =
+      "Recognized: " + text;
+  };
 }
 
 </script>
