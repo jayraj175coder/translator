@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Sign Language Translator</title>
+
+<style>
+:root {
+  --bg1:#141e30;
+  --bg2:#243b55;
+  --accent:#00e5ff;
+}
+
+body{
+  margin:0;
+  font-family:"Segoe UI",sans-serif;
+  background:linear-gradient(120deg,var(--bg1),var(--bg2));
+  color:white;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+}
+
+.app{
+  width:95%;
+  max-width:800px;
+  background:rgba(255,255,255,0.08);
+  padding:20px;
+  border-radius:20px;
+  backdrop-filter:blur(10px);
+}
+
+h1{text-align:center;}
+
+.tabs{
+  display:flex;
+  gap:10px;
+  margin-bottom:15px;
+}
+
+.tab{
+  flex:1;
+  padding:10px;
+  border-radius:10px;
+  text-align:center;
+  cursor:pointer;
+  background:#ffffff22;
+}
+
+.active{background:var(--accent);color:black;}
+
+textarea{
+  width:100%;
+  height:90px;
+  border-radius:10px;
+  border:none;
+  padding:10px;
+  margin-top:10px;
+}
+
+button{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border:none;
+  border-radius:10px;
+  background:var(--accent);
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.output{
+  margin-top:20px;
+  text-align:center;
+}
+
+.avatar{
+  font-size:70px;
+}
+
+video{
+  width:100%;
+  border-radius:10px;
+  margin-top:10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+  <h1>🤟 AI Sign Language Translator</h1>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('text')">Text → Sign</div>
+    <div class="tab" onclick="switchTab('video')">Video → Text</div>
+  </div>
+
+  <!-- TEXT TO SIGN -->
+  <div id="textMode">
+    <textarea id="inputText" placeholder="Enter text..."></textarea>
+    <button onclick="generateSign()">Generate Sign</button>
+
+    <div class="output">
+      <div id="avatar" class="avatar">👋</div>
+      <p id="caption"></p>
+    </div>
+  </div>
+
+  <!-- VIDEO TO TEXT -->
+  <div id="videoMode" style="display:none;">
+    <button onclick="startCamera()">Start Camera</button>
+    <video id="video" autoplay></video>
+    <div class="output">
+      <p id="translatedText">Detected text will appear here...</p>
+    </div>
+  </div>
+</div>
+
+<script>
+let mode="text";
+
+function switchTab(tab){
+  mode=tab;
+  document.getElementById("textMode").style.display = tab==="text"?"block":"none";
+  document.getElementById("videoMode").style.display = tab==="video"?"block":"none";
+
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  event.target.classList.add("active");
+}
+
+// TEXT → SIGN
+let interval;
+function generateSign(){
+  const text=document.getElementById("inputText").value.toUpperCase();
+  const avatar=document.getElementById("avatar");
+  const caption=document.getElementById("caption");
+
+  let i=0;
+  clearInterval(interval);
+
+  interval=setInterval(()=>{
+    if(i>=text.length){clearInterval(interval);return;}
+    avatar.innerText="🤟";
+    caption.innerText="Signing: "+text[i];
+    i++;
+  },500);
+}
+
+// VIDEO → TEXT (Simulation)
+async function startCamera(){
+  const video=document.getElementById("video");
+  const stream=await navigator.mediaDevices.getUserMedia({video:true});
+  video.srcObject=stream;
+
+  // Fake detection loop
+  setInterval(()=>{
+    document.getElementById("translatedText").innerText =
+      "Detected: HELLO (simulated)";
+  },2000);
+}
+</script>
+
+</body>
+</html>
